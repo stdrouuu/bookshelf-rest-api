@@ -84,7 +84,15 @@ const getBookByIdHandler = (request, h) => {
   const { bookId } = request.params;
   const book = books.find((b) => b.id === bookId);
 
-  if (!book) return fail(h, 404, "Buku tidak ditemukan");
+  // Id tidak ditemukan
+  if (!book) {
+    const response = h.response({
+      status: "fail",
+      message: "Buku tidak ditemukan",
+    });
+    response.code(404);
+    return response;
+  }
 
   return {
     status: "success",
@@ -169,26 +177,27 @@ const updateBookByIdHandler = (request, h) => {
 };
 
 // DELETE /books/{bookId}
-const deletebookByIdHandler = (request, h) => {
-  const { id } = request.params;
+const deleteBookByIdHandler = (request, h) => {
+  const { bookId } = request.params;
+  const index = books.findIndex((book) => book.id === bookId);
 
-  const index = books.findIndex((book) => book.id === id);
-
+  // 1. Id tidak ditemukan
   if (index !== -1) {
-    books.splice(index, 1);
     const response = h.response({
-      status: "success",
-      message: "Catatan berhasil dihapus",
+      status: "fail",
+      message: "Catatan gagal dihapus. Id tidak ditemukan",
     });
-    response.code(200);
+    response.code(404);
     return response;
   }
 
+  // 2. Id dimiliki satu buku
+  books.splice(index, 1);
   const response = h.response({
-    status: "fail",
-    message: "Catatan gagal dihapus. Id tidak ditemukan",
+    status: "success",
+    message: "Catatan berhasil dihapus",
   });
-  response.code(404);
+  response.code(200);
   return response;
 };
 
@@ -197,4 +206,5 @@ module.exports = {
   getAllBooksHandler,
   getBookByIdHandler,
   updateBookByIdHandler,
+  deleteBookByIdHandler,
 };
