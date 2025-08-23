@@ -72,19 +72,52 @@ const addBookHandler = (request, h) => {
 };
 
 // GET /books
-const getAllBooksHandler = () => ({
-  status: "success",
-  data: {
-    books: books.map(({ id, name, publisher }) => ({ id, name, publisher })),
-  },
-});
+const getAllBooksHandler = (request, h) => {
+  const { name, reading, finished } = request.query;
+
+  let filteredBooks = books;
+
+  if (name !== undefined) {
+    filteredBooks = filteredBooks.filter((book) =>
+      book.name.toLowerCase().includes(name.toLowerCase())
+    );
+  }
+
+  if (reading !== undefined) {
+    filteredBooks = filteredBooks.filter(
+      (book) => book.reading === (reading === "1")
+    );
+  }
+
+  if (finished !== undefined) {
+    filteredBooks = filteredBooks.filter(
+      (book) => book.finished === (finished === "1")
+    );
+  }
+
+  const response = h.response({
+    status: "success",
+    data: {
+      books:
+        filteredBooks.length > 0
+          ? filteredBooks.map(({ id, name, publisher }) => ({
+              id,
+              name,
+              publisher,
+            }))
+          : [],
+    },
+  });
+  response.code(200);
+  return response;
+};
 
 // GET /books/{bookId}
 const getBookByIdHandler = (request, h) => {
   const { bookId } = request.params;
   const book = books.find((b) => b.id === bookId);
 
-  // Id tidak ditemukan
+  // 1. Id tidak ditemukan
   if (!book) {
     const response = h.response({
       status: "fail",
@@ -94,10 +127,13 @@ const getBookByIdHandler = (request, h) => {
     return response;
   }
 
-  return {
+  // 2. Id ditemukan
+  const response = h.response({
     status: "success",
     data: { book },
-  };
+  });
+  response.code(200);
+  return response;
 };
 
 // PUT /books/{bookId}
@@ -139,6 +175,7 @@ const updateBookByIdHandler = (request, h) => {
       .code(400);
   }
 
+  // 3. Id tidak ditemukan
   const index = books.findIndex((book) => book.id === bookId);
 
   if (index !== -1) {
@@ -158,7 +195,7 @@ const updateBookByIdHandler = (request, h) => {
       finished,
       updatedAt,
     };
-    // 3. Id tidak ditemukan
+
     const response = h.response({
       status: "fail",
       message: "Gagal memperbarui buku. Id tidak ditemukan",
