@@ -1,63 +1,94 @@
 const { nanoid } = require("nanoid");
 const books = require("./books");
 
+// POST
 const addBookHandler = (request, h) => {
-  const { name, year, author, summary, publisher, pageCount, readPage, reading } = request.payload;
+  const {
+    name,
+    year,
+    author,
+    summary,
+    publisher,
+    pageCount,
+    readPage,
+    reading,
+  } = request.payload;
 
+  // 1. Client tidak melampirkan properti name pada request body
+  if (!name || name.toString().trim() === "") {
+    return h
+      .response({
+        status: "fail",
+        message: "Gagal menambahkan buku. Mohon isi nama buku",
+      })
+      .code(400);
+  }
+
+  // 2. readPage lebih besar dari pageCount
+  if (
+    typeof readPage === "number" &&
+    typeof pageCount === "number" &&
+    readPage > pageCount
+  ) {
+    return h
+      .response({
+        status: "fail",
+        message:
+          "Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount",
+      })
+      .code(400);
+  }
+
+  // 3. buku berhasil dimasukkan
   const id = nanoid(16);
-  const createdAt = new Date().toISOString();
-  const updatedAt = createdAt;
+  const finished = pageCount === readPage;
+  const insertedAt = new Date().toISOString();
+  const updatedAt = insertedAt;
 
-  const newNote = { 
-    title,
-    tags,
-    body,
+  const newBook = {
     id,
-    createdAt,
+    name,
+    year,
+    author,
+    summary,
+    publisher,
+    pageCount,
+    readPage,
+    finished,
+    reading,
+    insertedAt,
     updatedAt,
   };
 
-  notes.push(newNote);
-
-  const isSuccess = notes.filter((note) => note.id === id).length > 0;
-
-  if (isSuccess) {
-    const response = h.response({
-      status: "success",
-      message: "Catatan berhasil ditambahkan",
-      data: {
-        noteId: id,
-      },
-    });
-    response.code(201);
-    return response;
-  }
+  books.push(newBook);
 
   const response = h.response({
-    status: "fail",
-    message: "Catatan gagal ditambahkan",
+    status: "success",
+    message: "Buku berhasil ditambahkan",
+    data: { bookId: id },
   });
-  response.code(500);
+  response.code(201);
   return response;
 };
 
-const getAllNotesHandler = () => ({
+// GET
+const getAllbooksHandler = () => ({
   status: "success",
   data: {
-    notes,
+    books,
   },
 });
 
-const getNoteByIdHandler = (request, h) => {
+const getbookByIdHandler = (request, h) => {
   const { id } = request.params;
 
-  const note = notes.filter((n) => n.id === id)[0];
+  const book = books.filter((n) => n.id === id)[0];
 
-  if (note !== undefined) {
+  if (book !== undefined) {
     return {
       status: "success",
       data: {
-        note,
+        book,
       },
     };
   }
@@ -70,17 +101,17 @@ const getNoteByIdHandler = (request, h) => {
   return response;
 };
 
-const editNoteByIdHandler = (request, h) => {
+const editbookByIdHandler = (request, h) => {
   const { id } = request.params;
 
   const { title, tags, body } = request.payload;
   const updatedAt = new Date().toISOString();
 
-  const index = notes.findIndex((note) => note.id === id);
+  const index = books.findIndex((book) => book.id === id);
 
   if (index !== -1) {
-    notes[index] = {
-      ...notes[index],
+    books[index] = {
+      ...books[index],
       title,
       tags,
       body,
@@ -103,13 +134,13 @@ const editNoteByIdHandler = (request, h) => {
   return response;
 };
 
-const deleteNoteByIdHandler = (request, h) => {
+const deletebookByIdHandler = (request, h) => {
   const { id } = request.params;
 
-  const index = notes.findIndex((note) => note.id === id);
+  const index = books.findIndex((book) => book.id === id);
 
   if (index !== -1) {
-    notes.splice(index, 1);
+    books.splice(index, 1);
     const response = h.response({
       status: "success",
       message: "Catatan berhasil dihapus",
@@ -127,9 +158,7 @@ const deleteNoteByIdHandler = (request, h) => {
 };
 
 module.exports = {
-  addNoteHandler,
-  getAllNotesHandler,
-  getNoteByIdHandler,
-  editNoteByIdHandler,
-  deleteNoteByIdHandler,
+  addbookHandler,
+  getAllbookHandler,
+  getbookByIdHandler,
 };
