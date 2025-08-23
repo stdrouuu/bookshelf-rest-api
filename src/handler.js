@@ -1,7 +1,7 @@
 const { nanoid } = require("nanoid");
 const books = require("./books");
 
-// POST
+// POST /books
 const addBookHandler = (request, h) => {
   const {
     name,
@@ -71,36 +71,28 @@ const addBookHandler = (request, h) => {
   return response;
 };
 
-// GET
-const getAllbooksHandler = () => ({
+// GET /books
+const getAllBooksHandler = () => ({
   status: "success",
   data: {
-    books,
+    books: books.map(({ id, name, publisher }) => ({ id, name, publisher })),
   },
 });
 
-const getbookByIdHandler = (request, h) => {
-  const { id } = request.params;
+// GET /books/{bookId}
+const getBookByIdHandler = (request, h) => {
+  const { bookId } = request.params;
+  const book = books.find((b) => b.id === bookId);
 
-  const book = books.filter((n) => n.id === id)[0];
+  if (!book) return fail(h, 404, "Buku tidak ditemukan");
 
-  if (book !== undefined) {
-    return {
-      status: "success",
-      data: {
-        book,
-      },
-    };
-  }
-
-  const response = h.response({
-    status: "fail",
-    message: "Catatan tidak ditemukan",
-  });
-  response.code(404);
-  return response;
+  return {
+    status: "success",
+    data: { book },
+  };
 };
 
+// PUT /books/{bookId}
 const editbookByIdHandler = (request, h) => {
   const { id } = request.params;
 
@@ -158,7 +150,7 @@ const deletebookByIdHandler = (request, h) => {
 };
 
 module.exports = {
-  addbookHandler,
-  getAllbookHandler,
-  getbookByIdHandler,
+  addBookHandler,
+  getAllBooksHandler,
+  getBookByIdHandler,
 };
