@@ -178,24 +178,7 @@ const updateBookByIdHandler = (request, h) => {
   // 3. Id tidak ditemukan
   const index = books.findIndex((book) => book.id === bookId);
 
-  if (index !== -1) {
-    const updatedAt = new Date().toISOString();
-    const finished = pageCount === readPage;
-
-    books[index] = {
-      ...books[index],
-      name,
-      year,
-      author,
-      summary,
-      publisher,
-      pageCount,
-      readPage,
-      reading: Boolean(reading),
-      finished,
-      updatedAt,
-    };
-
+  if (index === -1) {
     const response = h.response({
       status: "fail",
       message: "Gagal memperbarui buku. Id tidak ditemukan",
@@ -205,6 +188,23 @@ const updateBookByIdHandler = (request, h) => {
   }
 
   // 4. Buku berhasil diperbarui
+  const updatedAt = new Date().toISOString();
+  const finished = pageCount === readPage;
+
+  books[index] = {
+    ...books[index],
+    name,
+    year,
+    author,
+    summary,
+    publisher,
+    pageCount,
+    readPage,
+    reading: Boolean(reading),
+    finished,
+    updatedAt,
+  };
+
   const response = h.response({
     status: "success",
     message: "Buku berhasil diperbarui",
@@ -219,10 +219,10 @@ const deleteBookByIdHandler = (request, h) => {
   const index = books.findIndex((book) => book.id === bookId);
 
   // 1. Id tidak ditemukan
-  if (index !== -1) {
+  if (index === -1) {
     const response = h.response({
       status: "fail",
-      message: "Catatan gagal dihapus. Id tidak ditemukan",
+      message: "Buku gagal dihapus. Id tidak ditemukan",
     });
     response.code(404);
     return response;
@@ -232,7 +232,7 @@ const deleteBookByIdHandler = (request, h) => {
   books.splice(index, 1);
   const response = h.response({
     status: "success",
-    message: "Catatan berhasil dihapus",
+    message: "Buku berhasil dihapus",
   });
   response.code(200);
   return response;
